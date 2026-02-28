@@ -1,0 +1,160 @@
+import { HealthStepResult } from "@/health/health-check";
+import { verifyGitHubToken } from "./github";
+import { getSandbox } from "@cloudflare/sandbox";
+import { getSandboxOptions } from "@/ai/utils/sandbox";
+
+// ─── Timeout utility ──────────────────────────────────────────────────
+// Ensures no health check step hangs the system.
+const withTimeout = <T>(promise: Promise<T>, ms: number, stepName: string): Promise<T> => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const timeout = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`Timeout exceeded for ${stepName} (${ms}ms)`)), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+};
+
+/**
+ * Checks the health of the Git Domain and Sandbox Container by verifying:
+ * 1. GitHub API Authentication
+ * 2. Sandbox Initialization & Ping
+ * 3. File System (R2 Mounts & Local I/O)
+ * 4. Git Operations (Clone)
+ * 5. Execution Engine (Commands & Streams)
+ */
+export async function checkHealth(env: Env): Promise<HealthStepResult> {
+    const start = Date.now();
+    const subChecks: Record<string, any> = {};
+
+    try {
+        // --- 1. Test GitHub Auth ---
+        const authStart = Date.now();
+        const authResult = await withTimeout(verifyGitHubToken(env), 5000, "GitHub Auth");
+        subChecks.githubAuth = {
+            status: authResult.valid ? "OK" : "FAIL",
+            latency: Date.now() - authStart,
+            ...(authResult.valid ? { user: authResult.user } : { error: authResult.error })
+        };
+
+        // --- 2. Sandbox Deep Diagnostics ---
+        if (!env.SANDBOX) {
+            subChecks.containerSandbox = { status: "SKIPPED", reason: "Binding missing" };
+        } else {
+            const sandboxStart = Date.now();
+
+            try {
+                // Initialize Sandbox via the Cloudflare SDK
+                const options = await getSandboxOptions(env);
+                const sandbox = getSandbox(env.SANDBOX, "sandbox-health-probe", {
+                    ...options,
+                });
+
+                // 2a. Ping test — verifies container runtime is awake (needs longer timeout for provisioning)
+                const pingStart = Date.now();
+                await withTimeout(sandbox.exec("echo ping"), 60000, "Sandbox Ping");
+                subChecks.sandboxPing = { status: "OK", latency: Date.now() - pingStart };
+
+                // 2b. File System Check — tests write → read → delete cycle
+                const fsStart = Date.now();
+                try {
+                    const testPath = "/tmp/health-check.tmp";
+                    await withTimeout(sandbox.writeFile(testPath, "health-ok"), 15000, "FS Write");
+                    const readResult = await withTimeout(sandbox.readFile(testPath), 15000, "FS Read");
+                    await withTimeout(sandbox.exec(`rm ${testPath}`), 15000, "FS Delete");
+
+                    subChecks.sandboxFS = {
+                        status: readResult?.content === "health-ok" ? "OK" : "DEGRADED",
+                        latency: Date.now() - fsStart
+                    };
+                } catch (fsErr) {
+                    subChecks.sandboxFS = {
+                        status: "FAIL",
+                        error: fsErr instanceof Error ? fsErr.message : String(fsErr),
+                        latency: Date.now() - fsStart
+                    };
+                }
+
+                // 2c. Git Operations Check — shallow clone of a tiny public repo
+                const gitStart = Date.now();
+                try {
+                    await withTimeout(
+                        sandbox.exec("git clone --depth=1 https://github.com/octocat/Hello-World.git /tmp/health-git"),
+                        15000,
+                        "Git Clone"
+                    );
+                    subChecks.sandboxGit = { status: "OK", latency: Date.now() - gitStart };
+                } catch (gitErr) {
+                    subChecks.sandboxGit = {
+                        status: "FAIL",
+                        error: gitErr instanceof Error ? gitErr.message : String(gitErr),
+                        latency: Date.now() - gitStart
+                    };
+                }
+
+                // 2d. Command Execution — verify exec engine
+                const execStart = Date.now();
+                try {
+                    const psResult = await withTimeout(
+                        sandbox.exec("echo health-ok"),
+                        15000,
+                        "Exec echo"
+                    );
+                    subChecks.sandboxExec = {
+                        status: psResult.exitCode === 0 ? "OK" : "FAIL",
+                        latency: Date.now() - execStart,
+                        exitCode: psResult.exitCode,
+                    };
+                } catch (execErr) {
+                    subChecks.sandboxExec = {
+                        status: "FAIL",
+                        error: execErr instanceof Error ? execErr.message : String(execErr),
+                        latency: Date.now() - execStart
+                    };
+                }
+
+                // Aggregate Sandbox Status
+                subChecks.containerSandbox = {
+                    status: "OK",
+                    message: "All container subsystems evaluated",
+                    totalLatency: Date.now() - sandboxStart
+                };
+
+            } catch (sandboxError) {
+                subChecks.containerSandbox = {
+                    status: "FAIL",
+                    error: sandboxError instanceof Error ? sandboxError.message : String(sandboxError),
+                    latency: Date.now() - sandboxStart
+                };
+            }
+        }
+
+        // Determine overall status
+        const isOverallSuccess =
+            subChecks.githubAuth?.status !== "FAIL" &&
+            subChecks.containerSandbox?.status !== "FAIL";
+
+        // Sub-checks that FAIL but aren't critical still show in details
+        const hasDegradation =
+            subChecks.sandboxFS?.status === "FAIL" ||
+            subChecks.sandboxGit?.status === "FAIL" ||
+            subChecks.sandboxExec?.status === "FAIL";
+
+        return {
+            name: "Git & Sandbox Domain",
+            status: isOverallSuccess ? "success" : "failure",
+            message: isOverallSuccess
+                ? hasDegradation ? "Operational with subsystem degradation" : "All systems operational"
+                : "Subsystem degradation detected",
+            durationMs: Date.now() - start,
+            details: subChecks
+        };
+
+    } catch (error) {
+        return {
+            name: "Git & Sandbox Domain",
+            status: "failure",
+            message: error instanceof Error ? error.message : String(error),
+            durationMs: Date.now() - start,
+            details: subChecks
+        };
+    }
+}

@@ -1,22 +1,22 @@
 {
-  "name": "recruiter",
-  "main": "src/index.ts",
-  "compatibility_date": "2024-04-01",
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "2026-recruiter",
-      "database_id": "ed1ce101-c183-4a5d-8ce9-9090ada6a077",
-      "migrations_dir": "drizzle"
-    }
-  ],
-  "ai": {
-    "binding": "AI"
-  },
+	"name": "recruiter",
+	"main": "src/index.ts",
+	"compatibility_date": "2024-04-01",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "2026-recruiter",
+			"database_id": "ed1ce101-c183-4a5d-8ce9-9090ada6a077",
+			"migrations_dir": "drizzle"
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
 	"upload_source_maps": true,
 	"observability": {
 		"enabled": true,
@@ -27,5 +27,12 @@
 		"traces": {
 			"enabled": false
 		}
-	}
+	},
+	"vectorize": [
+		{
+			"binding": "VECTORIZE_LOGS",
+			"index_name": "recruiter-health-logs",
+			"remote": true
+		}
+	]
 }

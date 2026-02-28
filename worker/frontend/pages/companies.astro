@@ -1,0 +1,128 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { drizzle } from 'drizzle-orm/d1';
+import * as schema from '../../backend/db/schema';
+
+// Required for runtime env access in Astro on Cloudflare
+const runtime = Astro.locals.runtime;
+if (!runtime) {
+  throw new Error("Missing Cloudflare runtime in Astro.locals.");
+}
+
+const db = drizzle(runtime.env.DB, { schema });
+const companies = await db.query.companies.findMany({
+  orderBy: (companies, { desc }) => [desc(companies.createdAt)]
+});
+
+// Since Astro SSR handles form submissions natively, we can intercept POST requests
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+    const name = data.get("name")?.toString();
+    const url = data.get("careerUrl")?.toString();
+    const pattern = data.get("pattern")?.toString() || "";
+
+    if (name && url) {
+      await db.insert(schema.companies).values({
+        name,
+        careerUrl: url,
+        jobLinkPattern: pattern
+      });
+      return Astro.redirect('/companies');
+    }
+  } catch (error) {
+    console.error("Form submission failed:", error);
+  }
+}
+---
+
+<Layout title="Manage Scraping Targets | Head Hunter">
+  <main class="container mx-auto py-10 px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Recruitment Targets</h1>
+        <p class="text-muted-foreground text-lg">Manage company career pages for agentic scraping.</p>
+      </div>
+      <Button variant="outline" asChild><a href="/">← Back to Dashboard</a></Button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Tracked Companies</CardTitle>
+            <CardDescription>The ScraperAgent polls these endpoints recursively.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {companies.length === 0 ? (
+              <p class="text-muted-foreground py-4 text-center">No companies added yet.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Careers URL</TableHead>
+                    <TableHead>Job Pattern</TableHead>
+                    <TableHead class="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companies.map((company) => (
+                    <TableRow>
+                      <TableCell class="font-medium">{company.name}</TableCell>
+                      <TableCell>
+                        <a href={company.careerUrl} target="_blank" rel="noreferrer" class="text-blue-400 hover:text-blue-300 transition-colors">
+                          {company.careerUrl.replace(/^https?:\/\//, '').substring(0, 30)}...
+                        </a>
+                      </TableCell>
+                      <TableCell class="text-muted-foreground text-sm font-mono truncate max-w-[150px]">
+                        {company.jobLinkPattern || '*'}
+                      </TableCell>
+                      <TableCell class="text-right">
+                         <form method="POST" action={`/api/companies/${company.id}?_method=DELETE`} class="inline-block">
+                           <Button variant="destructive" size="sm" type="submit">Remove</Button>
+                         </form>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Target</CardTitle>
+            <CardDescription>Register a new company to track.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form method="POST" class="space-y-4">
+              <div class="space-y-2">
+                <Label htmlFor="name">Company Name</Label>
+                <Input id="name" name="name" required placeholder="e.g. Cloudflare" />
+              </div>
+              <div class="space-y-2">
+                <Label htmlFor="careerUrl">Careers Timeline URL</Label>
+                <Input id="careerUrl" name="careerUrl" type="url" required placeholder="https://www.cloudflare.com/careers/jobs/" />
+              </div>
+              <div class="space-y-2">
+                <Label htmlFor="pattern">Scraper Reject Pattern (Optional)</Label>
+                <Input id="pattern" name="pattern" placeholder="e.g. greenhouse.io|lever.co" />
+                <p class="text-xs text-muted-foreground">Regex pattern matching valid job links to prevent scraping garbage.</p>
+              </div>
+              <Button type="submit" class="w-full">Start Tracking</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </main>
+</Layout>
