@@ -1,0 +1,59 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import '@/styles/globals.css';
+
+const snippets = [
+  { title: "Intro - High Energy", content: "I am a passionate software engineer with a drive for...", tags: ["intro", "startup", "frontend"] },
+  { title: "Experience - React Performance", content: "Led a team to optimize React rendering performance by 40%...", tags: ["experience", "react", "performance"] },
+  { title: "Closing - Enterprise Focus", content: "I am excited to bring my enterprise architecture experience to...", tags: ["closing", "enterprise", "backend"] }
+];
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>AI Content Snippets Library</title>
+	</head>
+	<body class="dark">
+		<Layout client:load>
+      <div class="flex justify-between items-center mb-6">
+			  <h1 class="text-3xl font-bold">Content Snippets Library</h1>
+        <Button>Create Snippet</Button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {snippets.map(snippet => (
+          <Card class="flex flex-col h-full hover:border-primary transition-colors cursor-pointer group">
+            <CardHeader class="pb-3">
+              <CardTitle class="text-lg">{snippet.title}</CardTitle>
+            </CardHeader>
+            <CardContent class="flex-1">
+              <p class="text-sm text-muted-foreground line-clamp-3">
+                {snippet.content}
+              </p>
+            </CardContent>
+            <CardFooter class="pt-3 border-t bg-muted/20 flex flex-wrap gap-2">
+              {snippet.tags.map(tag => (
+                <Badge variant="secondary" class="text-xs">{tag}</Badge>
+              ))}
+            </CardFooter>
+            <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-xl" />
+          </Card>
+        ))}
+
+        <Card class="flex flex-col h-full border-dashed bg-transparent hover:bg-muted/50 transition-colors cursor-pointer group items-center justify-center min-h-[200px]">
+          <CardContent class="text-center p-6 text-muted-foreground group-hover:text-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 h-8 w-8"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <span class="font-medium">Add New Snippet</span>
+          </CardContent>
+        </Card>
+      </div>
+		</Layout>
+	</body>
+</html>
