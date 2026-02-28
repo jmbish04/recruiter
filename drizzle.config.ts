@@ -6,6 +6,6 @@ export default defineConfig({
   driver: 'd1',
   dbCredentials: {
     wranglerConfigPath: 'wrangler.json',
-    dbName: 'job-scraper-db'
+    dbName: '2026-recruiter'
   }
 });

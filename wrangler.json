@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "job-scraper-api",
   "main": "src/index.ts",
-  "compatibility_date": "2026-02-25",
+  "compatibility_date": "2024-04-01",
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS"
@@ -10,8 +10,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "job-scraper-db",
-      "database_id": "<YOUR_D1_ID>",
+      "database_name": "2026-recruiter",
+      "database_id": "ed1ce101-c183-4a5d-8ce9-9090ada6a077",
       "migrations_dir": "drizzle"
     }
   ],
