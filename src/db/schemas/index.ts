@@ -26,7 +26,7 @@ export const jobs = sqliteTable('jobs', {
 
 export const jobScores = sqliteTable('job_scores', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  jobId: integer('job_id').references(() => jobs.id).notNull(),
+  jobId: integer('job_id').references(() => jobs.id, { onDelete: 'cascade' }).notNull(),
   overallScore: real('overall_score'),
   locationScore: real('location_score'),
   benefitsScore: real('benefits_score'),
