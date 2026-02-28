@@ -13,13 +13,13 @@ export const companies = sqliteTable('companies', {
 
 export const jobs = sqliteTable('jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  companyId: integer('company_id').references(() => companies.id).notNull(),
+  companyId: integer('company_id').references(() => companies.id, { onDelete: 'cascade' }).notNull(),
   title: text('title').notNull(),
   description: text('description').notNull(),
   location: text('location'),
   url: text('url').notNull(),
   publishedAt: text('published_at'),
-  status: text('status').notNull().default('open'),
+  status: text('status', { enum: ['open', 'closed'] }).notNull().default('open'),
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
   updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
 });
@@ -37,7 +37,7 @@ export const jobScores = sqliteTable('job_scores', {
   humanBenefitsRating: real('human_benefits_rating'),
   humanSalaryRating: real('human_salary_rating'),
   humanNotes: text('human_notes'),
-  status: text('status').notNull().default('pending'), // pending, reviewed, rejected
+  status: text('status', { enum: ['pending', 'reviewed', 'rejected', 'failed'] }).notNull().default('pending'),
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),
   updatedAt: text('updated_at').notNull().default('CURRENT_TIMESTAMP'),
 });
@@ -63,8 +63,8 @@ export const userProfile = sqliteTable('user_profile', {
 
 export const documents = sqliteTable('documents', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  jobId: integer('job_id').references(() => jobs.id).notNull(),
-  type: text('type').notNull(), // 'resume' or 'cover_letter'
+  jobId: integer('job_id').references(() => jobs.id, { onDelete: 'cascade' }).notNull(),
+  type: text('type', { enum: ['resume', 'cover_letter'] }).notNull(),
   title: text('title').notNull(),
   content: text('content').notNull(), // Plate UI JSON state
   createdAt: text('created_at').notNull().default('CURRENT_TIMESTAMP'),

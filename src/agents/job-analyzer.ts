@@ -10,9 +10,12 @@ interface Env {
   AI_GATEWAY_URL: string;
 }
 
+const ONE_HOUR_IN_MS = 60 * 60 * 1000;
+const SYSTEM_PROMPT = `You are an expert technical recruiter AI. Analyze the following job description and provide a score from 0-100 on these metrics: overall, location, benefits, salary. Return JSON only: {"overallScore": 85, "locationScore": 90, "benefitsScore": 80, "salaryScore": 75, "aiAnalysis": "Brief explanation"}`;
+
 export class JobAnalyzerAgent extends Agent<Env> {
   async onStart() {
-    this.schedule(60 * 60 * 1000); // Check every hour
+    this.schedule(ONE_HOUR_IN_MS);
   }
 
   async onSchedule() {
@@ -41,24 +44,28 @@ export class JobAnalyzerAgent extends Agent<Env> {
 
       const job = record.jobs;
 
-      const analysis = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert technical recruiter AI. Analyze the following job description and provide a score from 0-100 on these metrics: overall, location, benefits, salary. Return JSON only: {"overallScore": 85, "locationScore": 90, "benefitsScore": 80, "salaryScore": 75, "aiAnalysis": "Brief explanation"}`
-          },
-          {
-            role: 'user',
-            content: `Title: ${job.title}\nDescription: ${job.description}\nLocation: ${job.location}`
-          }
-        ],
-        response_format: { type: 'json_object' }
-      });
+      try {
+        const analysis = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: SYSTEM_PROMPT
+            },
+            {
+              role: 'user',
+              content: JSON.stringify({
+                title: job.title,
+                description: job.description,
+                location: job.location
+              })
+            }
+          ],
+          response_format: { type: 'json_object' }
+        });
 
-      const resultStr = analysis.choices[0].message.content;
-      if (resultStr) {
-        try {
+        const resultStr = analysis.choices[0].message.content;
+        if (resultStr) {
           const result = JSON.parse(resultStr);
           await db.update(schema.jobScores)
             .set({
@@ -72,9 +79,17 @@ export class JobAnalyzerAgent extends Agent<Env> {
             })
             .where(eq(schema.jobScores.id, record.job_scores.id))
             .run();
-        } catch (e) {
-          console.error("Failed to parse AI response", e);
         }
+      } catch (e) {
+        console.error("Failed to parse AI response", e);
+        await db.update(schema.jobScores)
+          .set({
+            status: 'failed',
+            aiAnalysis: `Failed to parse AI response: ${e instanceof Error ? e.message : String(e)}`,
+            updatedAt: new Date().toISOString()
+          })
+          .where(eq(schema.jobScores.id, record.job_scores.id))
+          .run();
       }
     }
   }

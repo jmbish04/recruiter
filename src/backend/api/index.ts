@@ -2,13 +2,21 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { drizzle } from 'drizzle-orm/d1';
 import { swaggerUI } from '@hono/swagger-ui';
 import * as schema from '../../db/schemas/index';
+import { bearerAuth } from 'hono/bearer-auth';
 
 type Bindings = {
   DB: D1Database;
-  AI: any;
+  AI: Ai; // Use Ai type for Cloudflare Workers AI binding
+  API_KEY: string;
 };
 
 export const api = new OpenAPIHono<{ Bindings: Bindings }>();
+
+// Simple auth middleware for API routes
+api.use('/companies/*', (c, next) => {
+  const token = c.env.API_KEY || 'default-secret-key';
+  return bearerAuth({ token })(c, next);
+});
 
 const companySchema = z.object({
   id: z.number().openapi({ example: 1 }),
@@ -23,6 +31,7 @@ api.openapi(
   createRoute({
     method: 'get',
     path: '/companies',
+    security: [{ bearerAuth: [] }],
     responses: {
       200: {
         description: 'List of companies',
@@ -41,6 +50,7 @@ api.openapi(
   createRoute({
     method: 'post',
     path: '/companies',
+    security: [{ bearerAuth: [] }],
     request: {
       body: {
         content: { 'application/json': { schema: companySchema.omit({ id: true }) } },
@@ -61,7 +71,6 @@ api.openapi(
   }
 );
 
-// Basic docs
 api.doc('/doc', {
   openapi: '3.0.0',
   info: { version: '1.0.0', title: 'Job Scraper API' },
