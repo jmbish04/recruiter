@@ -111,14 +111,16 @@ export async function createRunner(
   });
 }
 
-export async function runTextAgent(options: {
+interface AgentRunnerOptions {
   env: Env;
   provider?: SupportedProvider;
   model?: string;
   name: string;
   instructions: string;
   input: string;
-}): Promise<string> {
+}
+
+async function prepareAgentAndRunner(options: AgentRunnerOptions) {
   const provider = options.provider || resolveDefaultAiProvider(options.env);
   const model = options.model || resolveDefaultAiModel(options.env, provider);
   const runner = await createRunner(options.env, provider, model);
@@ -127,27 +129,16 @@ export async function runTextAgent(options: {
     instructions: options.instructions,
     model,
   });
+  return { runner, agent };
+}
 
+export async function runTextAgent(options: AgentRunnerOptions): Promise<string> {
+  const { runner, agent } = await prepareAgentAndRunner(options);
   const result = await runner.run(agent, options.input);
   return String(result.finalOutput ?? "");
 }
 
-export async function streamTextAgent(options: {
-  env: Env;
-  provider?: SupportedProvider;
-  model?: string;
-  name: string;
-  instructions: string;
-  input: string;
-}) {
-  const provider = options.provider || resolveDefaultAiProvider(options.env);
-  const model = options.model || resolveDefaultAiModel(options.env, provider);
-  const runner = await createRunner(options.env, provider, model);
-  const agent = new Agent({
-    name: options.name,
-    instructions: options.instructions,
-    model,
-  });
-
+export async function streamTextAgent(options: AgentRunnerOptions) {
+  const { runner, agent } = await prepareAgentAndRunner(options);
   return runner.run(agent, options.input, { stream: true });
 }

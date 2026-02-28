@@ -335,34 +335,27 @@ Conclude your investigation with a detailed summary containing the severity, roo
             ]
         };
 
-        // 4. Execute the Agent using the BaseAgent's structured response method
+        // 4. Execute the Agent using the BaseAgent's method
         try {
-             // We need to bypass BaseAgent's protective wrapper to inject custom tools while still getting structured output.
-             // BaseAgent currently doesn't accept a `tools` parameter in `runStructuredResponseWithModel`. 
-             // We'll instantiate the OpenAIAgent directly here to achieve both tools AND schema.
-             
-             const runner = await import("@/ai/agent-sdk").then(m => m.createRunner(this.env, agentConfig.provider, agentConfig.model));
-             
-             const { Agent } = await import("@openai/agents");
-             const agent = new Agent({
-                 name: agentConfig.name,
-                 instructions: agentConfig.instructions,
-                 model: agentConfig.model,
-                 tools: agentConfig.tools,
-                 // Removed outputType here to comply with AI standard mandate: let agent run freely, extract structure internally below
-             });
-
              // Diagnostic tracking: monitor actual byte size of the outbound LLM payload
              const payloadBytes = new TextEncoder().encode(prompt).length;
              this.logger.info(`[HealthDiagnostician] Outbound Prompt Payload Size: ${payloadBytes} bytes`);
 
-             const result = await runner.run(agent, prompt);
+             // Use the base agent's method now that it optionally supports a `tools` array
+             const finalOutput = await this.runTextWithModel({
+                 name: agentConfig.name,
+                 instructions: agentConfig.instructions,
+                 prompt: prompt,
+                 provider: agentConfig.provider,
+                 model: agentConfig.model,
+                 tools: agentConfig.tools
+             });
              
              // Enforce strict JSON output using the globally mandated AiProvider.generateStructuredResponse
              const { generateStructuredResponse } = await import("@/ai/providers/index");
              const { zodToJsonSchema } = await import("zod-to-json-schema");
              
-             const extractPrompt = `Extract the exact diagnosis details from the Agent's final response below. Respond ONLY with valid JSON.\n\nAgent Response:\n${result.finalOutput}`;
+             const extractPrompt = `Extract the exact diagnosis details from the Agent's final response below. Respond ONLY with valid JSON.\n\nAgent Response:\n${finalOutput}`;
              const finalData = await generateStructuredResponse<HealthDiagnosticianOutput>(
                 this.env, 
                 extractPrompt, 

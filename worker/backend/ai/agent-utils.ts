@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+
 
 /**
  * Safely extracts string content from a ChatCompletion message.

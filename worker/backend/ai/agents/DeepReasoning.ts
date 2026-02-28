@@ -109,7 +109,7 @@ export class DeepReasoningAgent extends BaseAgent<BaseAgentState> {
       const hasCfToken = !!(await this.env.CLOUDFLARE_API_TOKEN?.get?.() ?? this.env.CLOUDFLARE_API_TOKEN);
       const hasOpenAi = !!(await this.env.OPENAI_API_KEY?.get?.() ?? this.env.OPENAI_API_KEY); 
       
-      console.log(`[DeepReasoning] Keys present: AI_GATEWAY=${hasAiGateway}, CF_TOKEN=${hasCfToken}, OPENAI_ENV=${hasOpenAi}`);
+
       
       if (!promptText) {
         return new Response("Missing prompt/input", { status: 400 });

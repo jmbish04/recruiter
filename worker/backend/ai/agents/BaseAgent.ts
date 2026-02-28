@@ -36,6 +36,7 @@ export class BaseAgent<State = any> extends CFAgent<Env, State> {
     prompt: string;
     provider?: string | null;
     model?: string | null;
+    tools?: any[];
   }): Promise<string> {
     const provider = this.resolveProvider(input.provider);
     const model = this.resolveModel(provider, input.model);
@@ -51,6 +52,7 @@ export class BaseAgent<State = any> extends CFAgent<Env, State> {
       name: input.name,
       model,
       instructions: input.instructions,
+      tools: input.tools,
       // ⚠️ Removed local 'stdio'/'npx' MCP config as it will crash a CF Worker.
       // If MCP is required, you must use an SSE/HTTP transport or inject it as a standard tool.
     });
@@ -66,6 +68,7 @@ export class BaseAgent<State = any> extends CFAgent<Env, State> {
     schema: z.ZodType<T>;
     provider?: string | null;
     model?: string | null;
+    tools?: any[];
   }): Promise<T> {
     const provider = this.resolveProvider(input.provider);
     const model = this.resolveModel(provider, input.model);
@@ -79,7 +82,8 @@ export class BaseAgent<State = any> extends CFAgent<Env, State> {
       name: input.name,
       model,
       instructions: input.instructions,
-      outputType: input.schema as any, 
+      outputType: input.schema as any,
+      tools: input.tools,
       // ⚠️ Removed local 'stdio'/'npx' MCP config
     });
     
