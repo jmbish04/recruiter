@@ -50,5 +50,9 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.4.0",
     "wrangler": "^3.30.0"
+  },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
   }
 }
