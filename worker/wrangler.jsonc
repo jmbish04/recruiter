@@ -1,0 +1,52 @@
+{
+	"main": "dist/_worker.js/index.js",
+	"name": "recruiter",
+	"compatibility_date": "2026-02-28",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	},
+	"upload_source_maps": true,
+	"observability": {
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": false
+		}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "recruiter",
+			"database_id": "436c0301-99b0-4c6d-ae96-7d88c548c077",
+			"migrations_dir": "./migrations",
+			"remote": true
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"browser": {
+		"binding": "BROWSER"
+	},
+	"durable_objects": {
+		"bindings": [
+			{ "name": "SCRAPER_AGENT", "class_name": "ScraperAgent" },
+			{ "name": "EVALUATOR_AGENT", "class_name": "EvaluatorAgent" },
+			{ "name": "WRITER_AGENT", "class_name": "WriterAgent" }
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["ScraperAgent", "EvaluatorAgent", "WriterAgent"]
+		}
+	]
+}

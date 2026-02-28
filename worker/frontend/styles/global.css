@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@plugin "tailwind-scrollbar-hide";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+    --highlight: oklch(0.852 0.199 91.936);
+    --brand: oklch(0.623 0.214 259.815);
+}
+
+.dark {
+    --highlight: oklch(0.852 0.199 91.936);
+    --brand: oklch(0.707 0.165 254.624);
+}
+
+@theme inline {
+    --color-highlight: var(--highlight);
+    --color-brand: var(--brand);
+}

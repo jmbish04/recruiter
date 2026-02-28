@@ -1,0 +1,155 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { drizzle } from 'drizzle-orm/d1';
+import * as schema from '../../../backend/db/schema';
+import { eq } from 'drizzle-orm';
+
+const { id } = Astro.params;
+const runtime = Astro.locals.runtime;
+if (!runtime) throw new Error("Missing Cloudflare runtime");
+
+const db = drizzle(runtime.env.DB, { schema });
+
+const job = await db.query.jobs.findFirst({
+  where: eq(schema.jobs.id, parseInt(id as string, 10)),
+  with: {
+    company: true,
+    evaluations: true
+  }
+});
+
+if (!job) {
+  // Using 404 for missing records
+  return new Response("Job not found", { status: 404 });
+}
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  const locationScore = parseInt(data.get("locationScore")?.toString() || "0", 10);
+  const salaryScore = parseInt(data.get("salaryScore")?.toString() || "0", 10);
+  const benefitsScore = parseInt(data.get("benefitsScore")?.toString() || "0", 10);
+  const overallHumanScore = parseInt(data.get("overallHumanScore")?.toString() || "0", 10);
+
+  const existingEval = job.evaluations[0];
+  
+  if (existingEval) {
+    await db.update(schema.jobEvaluations)
+      .set({ locationScore, salaryScore, benefitsScore, overallHumanScore })
+      .where(eq(schema.jobEvaluations.id, existingEval.id));
+  } else {
+    await db.insert(schema.jobEvaluations).values({
+      jobId: job.id,
+      aiScore: null,
+      notes: "Human initiated review.",
+      locationScore,
+      salaryScore,
+      benefitsScore,
+      overallHumanScore
+    });
+  }
+  return Astro.redirect(`/jobs/${id}`);
+}
+
+const evaluation = job.evaluations[0] || {};
+---
+
+<Layout title={`Review: ${job.title} | Head Hunter`}>
+  <main class="container mx-auto py-10 px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-2">{job.title}</h1>
+        <p class="text-muted-foreground text-lg">{job.company?.name} • {job.location}</p>
+      </div>
+      <div class="flex gap-2">
+        <Button variant="outline" asChild><a href="/">Dashboard</a></Button>
+        <Button asChild><a href={`/jobs/${job.id}/materials`}>Application Materials 📝</a></Button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* 2/3 Width - Job Details */}
+      <div class="lg:col-span-2 space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Job Context</CardTitle>
+            <CardDescription>Extracted JSON artifacts</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <Label class="text-muted-foreground">Salary</Label>
+                <p class="font-medium">{job.salary || "N/A"}</p>
+              </div>
+              <div>
+                <Label class="text-muted-foreground">Bonus & Equity</Label>
+                <p class="font-medium text-sm">{job.bonus || "N/A"} / {job.equity || "N/A"}</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label class="text-muted-foreground">Requirements</Label>
+              <ul class="list-disc pl-5 mt-2 space-y-1">
+                {(job.requirements as string[] || []).map(r => <li>{r}</li>)}
+              </ul>
+            </div>
+            
+            <div>
+              <Label class="text-muted-foreground">Description</Label>
+              <div class="mt-2 text-sm text-foreground/80 whitespace-pre-wrap rounded-md bg-muted p-4 border border-border">
+                {job.description}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 1/3 Width - Human-in-the-loop Evaluation Tracker */}
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Intelligence Matrix</CardTitle>
+            <CardDescription>Human-In-The-Loop explicit feedback drives future AI weighting.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {evaluation.aiScore && (
+              <div class="mb-6 p-4 rounded-lg bg-blue-900/20 border border-blue-800/50">
+                <h4 class="font-semibold text-blue-400 mb-1">AI Evaluator Score: <span class="text-2xl ml-2">{evaluation.aiScore}</span></h4>
+                <p class="text-sm text-blue-200/70 italic">"{evaluation.notes}"</p>
+              </div>
+            )}
+            
+            <form method="POST" class="space-y-5 border-t border-border pt-6">
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <Label>Overall Fit (1-100)</Label>
+                  <Input name="overallHumanScore" type="number" min="0" max="100" defaultValue={evaluation.overallHumanScore} required />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <Label class="text-xs">Location Score</Label>
+                    <Input name="locationScore" type="number" min="0" max="10" defaultValue={evaluation.locationScore} placeholder="/10" />
+                  </div>
+                  <div class="space-y-2">
+                    <Label class="text-xs">Salary Score</Label>
+                    <Input name="salaryScore" type="number" min="0" max="10" defaultValue={evaluation.salaryScore} placeholder="/10" />
+                  </div>
+                  <div class="space-y-2">
+                    <Label class="text-xs">Benefits Score</Label>
+                    <Input name="benefitsScore" type="number" min="0" max="10" defaultValue={evaluation.benefitsScore} placeholder="/10" />
+                  </div>
+                </div>
+              </div>
+
+              <Button type="submit" class="w-full">Save Knowledge</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </main>
+</Layout>

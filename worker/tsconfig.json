@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ESNext", "WebWorker", "dom"],
+    "baseUrl": ".",
+    "allowJs": true,
+    "paths": {
+      "@/*": ["backend/*"],
+      "@/components/*": ["frontend/components/*"],
+      "@frontend/*": ["frontend/*"],
+      "@db": ["backend/db/index.ts"],
+      "@db/*": ["backend/db/*"],
+      "@agents/*": ["backend/ai/agents/*"],
+      "@utils/*": ["backend/utils/*"],
+      "@services/*": ["backend/services/*"],
+      "@types/*": ["backend/types/*"],
+      "@ai/*": ["backend/ai/*"]
+    },
+    "types": [
+      "@cloudflare/workers-types",
+      "./worker-configuration.d.ts"
+    ],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  },
+  "include": [
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx",
+    "frontend/**/*.astro",
+    "backend/**/*.ts",
+    "worker-configuration.d.ts",
+    ".astro/types.d.ts",
+    "astro.config.mjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
