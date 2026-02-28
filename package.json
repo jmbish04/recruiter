@@ -1,14 +1,14 @@
 {
-  "name": "job-scraper-platform",
+  "name": "recruiter",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "astro build && npm run migrate:remote && npx wrangler deploy",
     "db:generate": "drizzle-kit generate",
-    "migrate:db": "wrangler d1 migrations apply DB --remote",
-    "migrate:local": "wrangler d1 migrations apply DB --local"
+    "migrate:remote": "npm run db:generate && npx wrangler d1 migrations apply DB --remote",
+    "migrate:local": "npm run db:generate && npx wrangler d1 migrations apply DB --local"
   },
   "dependencies": {
     "@astrojs/react": "^3.1.0",
