@@ -101,9 +101,6 @@ export class Supervisor extends BaseAgent<Env> {
             return this.handleChat(body.message);
         }
 
-        if (request.method === "POST" && url.pathname === "/health/github") {
-            return this.runGithubHealthCheck();
-        }
 
         if (request.method === "POST" && url.pathname === "/debug/start") {
             return this.startLiveSurgery(request);
@@ -135,34 +132,7 @@ export class Supervisor extends BaseAgent<Env> {
 
     // --- Logic ---
 
-    async runGithubHealthCheck(): Promise<Response> {
-        this.broadcast("[Supervisor] 🏥 Starting GitHub Health Check...\n");
 
-        try {
-            const results: any[] = [
-                { status: 'healthy', check: 'stubbed-github-api' },
-                { status: 'healthy', check: 'stubbed-webhooks' }
-            ];
-
-            const overallStatus = 'healthy';
-
-            const healthStatus = {
-                status: overallStatus,
-                details: { results: results }
-            };
-
-            this.healthStatus = healthStatus;
-            await this.ctx.storage.put("healthStatus", healthStatus);
-
-            this.broadcast(`[Supervisor] Health Check Complete: ${healthStatus.status.toUpperCase()}\n`);
-            this.broadcast(JSON.stringify(healthStatus.details, null, 2) + "\n");
-
-            return Response.json(healthStatus);
-        } catch (e: any) {
-            this.broadcast(`[Supervisor] ❌ Health Check Failed: ${e.message}\n`);
-            return Response.json({ status: 'error', error: e.message }, { status: 500 });
-        }
-    }
 
     async startTask(params: any): Promise<Response> {
         return Response.json({ error: "Container support temporarily disabled" }, { status: 503 });

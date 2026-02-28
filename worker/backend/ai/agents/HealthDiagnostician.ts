@@ -5,8 +5,8 @@ import { Octokit } from "@octokit/rest";
 import { desc, eq } from "drizzle-orm";
 
 import { BaseAgent } from "./BaseAgent";
-import { getDb } from "@db";
-import { healthResults } from "@db/schemas/logs/health";
+import { getDb } from "@/db";
+import { healthResults } from "@/db/schemas/logs/health";
 import { julesJobs } from "@/db/schemas/agents/jules";
 import { JulesService } from "@/services/jules";
 import type { Agent as OpenAIAgentType } from "@openai/agents";
@@ -55,19 +55,7 @@ export class HealthDiagnostician extends BaseAgent {
             target: string;
         }>();
 
-        // 1. Initialize GitHub Client
-        // @ts-ignore - Support both standard string and secret binding
-        const ghToken = typeof this.env.GITHUB_TOKEN === 'object' && this.env.GITHUB_TOKEN?.get 
-            ? await (this.env as any).GITHUB_TOKEN.get() 
-            : this.env.GITHUB_TOKEN;
-            
-        const octokit = new Octokit({ auth: ghToken });
-        const repoOwner = this.env.GITHUB_OWNER || "jmbish04";
-        const repoName = this.env.CLOUDFLARE_WORKER_NAME || "core-github-api";
-
-        // Determine the default branch dynamically
-        const { data: repoData } = await octokit.repos.get({ owner: repoOwner, repo: repoName });
-        const defaultBranch = repoData.default_branch;
+        // Skip GitHub initialization for HeadHunter
 
         // 2. Query Cloudflare documentation via MCP
         const { rewriteQuestionForMCP } = await import("@/ai/providers/index");
@@ -92,16 +80,15 @@ export class HealthDiagnostician extends BaseAgent {
 
         // 3. Define the Agent's Instructions
         const instructions = `You are a Senior Engineer and an autonomous Site Reliability Agent operating on the Cloudflare ecosystem.
-Your primary directive is to investigate, diagnose, and remediate system health failures within the repository \`${repoOwner}/${repoName}\`.
+Your primary directive is to investigate, diagnose, and remediate system health failures within the worker platform.
 
 CRITICAL PRE-FLIGHT CHECK:
 1. Deduplication: You MUST use \`check_duplicate_pr\` to ensure no PRs or Jules tasks already exist for this issue. If one exists, halt immediately and return the URL in your final output.
 
 TRIAGE AND REMEDIATION:
-2. Analyze & Investigate: Read the error details, pull the failing code using \`get_github_file\`, and consult Cloudflare MCP documentation if needed.
+2. Analyze & Investigate: Read the error details and consult Cloudflare MCP documentation if needed.
 3. Reason about Complexity: Determine the scope of the fix.
-   - IF the fix is SMALL (e.g., typos, simple config adjustments, single-file logic errors under 20 lines): Formulate the fix and use \`create_pull_request\` to submit it immediately.
-   - IF the fix is COMPLEX (e.g., multi-file refactoring, architectural changes, deep logic bugs, package upgrades): Do NOT try to fix it yourself. Instead, use the \`delegate_to_jules\` tool to dispatch a deep-reasoning session to Google Jules. Provide Jules with a highly detailed prompt of what needs to be refactored.
+   - Use the \`delegate_to_jules\` tool to dispatch a deep-reasoning session to Google Jules. Provide Jules with a highly detailed prompt of what needs to be refactored.
 
 Conclude your investigation with a detailed summary containing the severity, rootCause, suggestedFix (or delegation note), and prUrl (or Jules Session ID).`;
 
@@ -130,7 +117,7 @@ Conclude your investigation with a detailed summary containing the severity, roo
                 });
                 
                 const relevantLogs = vectorMatches.matches
-                    .map(match => match.metadata?.content)
+                    .map((match: any) => match.metadata?.content)
                     .filter(Boolean)
                     .join("\n\n---\n\n");
                     
@@ -164,106 +151,27 @@ Conclude your investigation with a detailed summary containing the severity, roo
                     needsApproval: async () => false,
                     invoke: async (context: any, input: string) => {
                         try {
-                            const { data: prs } = await octokit.pulls.list({ owner: repoOwner, repo: repoName, state: "open" });
-                            const openPrs = prs.map(pr => ({ title: pr.title, url: pr.html_url }));
+                            const activeRecords: any[] = [];
     
                             const db = getDb(this.env.DB);
                             const recentFailures = await db.select()
                                 .from(healthResults)
-                                .where(eq(healthResults.status, 'failure'))
-                                .orderBy(desc(healthResults.timestamp))
+                                .where(eq(healthResults.status as any, 'failure'))
+                                .orderBy(desc(healthResults.timestamp as any))
                                 .limit(10);
                             
                             const recentAiSuggestions = recentFailures
-                                .filter(f => f.ai_suggestion && f.ai_suggestion.includes('github.com'))
-                                .map(f => ({ target: f.name, suggestion: f.ai_suggestion }));
+                                .filter((f: any) => f.ai_suggestion && f.ai_suggestion.includes('github.com'))
+                                .map((f: any) => ({ target: f.name, suggestion: f.ai_suggestion }));
     
-                            return JSON.stringify({ activePullRequests: openPrs, recentDatabaseActions: recentAiSuggestions });
+                            return JSON.stringify({ recentDatabaseActions: recentAiSuggestions });
                         } catch (e: any) {
                             this.logger.error("check_duplicate_pr failed", e);
                             return JSON.stringify({ error: e.message });
                         }
                     }
                 },
-                {
-                    type: 'function' as const,
-                    name: 'get_github_file',
-                    description: 'Fetch file content from GitHub.',
-                    parameters: { 
-                        type: 'object' as const, 
-                        properties: { path: { type: 'string' as const } },
-                        required: ['path'],
-                        additionalProperties: false
-                    },
-                    strict: true,
-                    isEnabled: async () => true,
-                    needsApproval: async () => false,
-                    invoke: async (context: any, input: string) => {
-                        try {
-                            const args = JSON.parse(input);
-                            const { data } = await octokit.repos.getContent({ owner: repoOwner, repo: repoName, path: args.path });
-                            if ('content' in data && typeof data.content === 'string') {
-                                return Buffer.from(data.content, 'base64').toString('utf-8');
-                            }
-                            return "File is not a standard text file or is a directory.";
-                        } catch (e: any) {
-                            this.logger.error("get_github_file failed", e);
-                            return `Failed to fetch file: ${e.message}`;
-                        }
-                    }
-                },
-                {
-                    type: 'function' as const,
-                    name: 'create_pull_request',
-                    description: 'Create a new pull request on GitHub.',
-                    parameters: {
-                        type: 'object' as const,
-                        properties: {
-                            branchName: { type: 'string' as const },
-                            filePath: { type: 'string' as const },
-                            newContent: { type: 'string' as const },
-                            commitMessage: { type: 'string' as const },
-                            prTitle: { type: 'string' as const },
-                            prBody: { type: 'string' as const }
-                        },
-                        required: ['branchName', 'filePath', 'newContent', 'commitMessage', 'prTitle', 'prBody'],
-                        additionalProperties: false
-                    },
-                    strict: true,
-                    isEnabled: async () => true,
-                    needsApproval: async () => false,
-                    invoke: async (context: any, input: string) => {
-                        try {
-                            const args = JSON.parse(input);
-                            const { branchName, filePath, newContent, commitMessage, prTitle, prBody } = args;
-                            
-                            const { data: refData } = await octokit.git.getRef({ owner: repoOwner, repo: repoName, ref: `heads/${defaultBranch}` });
-                            await octokit.git.createRef({ owner: repoOwner, repo: repoName, ref: `refs/heads/${branchName}`, sha: refData.object.sha });
-    
-                            let fileSha;
-                            try {
-                                const { data: fileData } = await octokit.repos.getContent({ owner: repoOwner, repo: repoName, path: filePath, ref: branchName });
-                                if (!Array.isArray(fileData) && fileData.type === "file") fileSha = fileData.sha;
-                            } catch (e) { /* Ignore */ }
-    
-                            await octokit.repos.createOrUpdateFileContents({
-                                owner: repoOwner, repo: repoName, path: filePath,
-                                message: commitMessage, content: Buffer.from(newContent).toString("base64"),
-                                branch: branchName, sha: fileSha
-                            });
-    
-                            const { data: prData } = await octokit.pulls.create({
-                                owner: repoOwner, repo: repoName, title: prTitle, body: prBody,
-                                head: branchName, base: defaultBranch
-                            });
-    
-                            return `Successfully created PR: ${prData.html_url}`;
-                        } catch (e: any) {
-                            this.logger.error("create_pull_request failed", e);
-                            return `PR Creation failed: ${e.message}`;
-                        }
-                    }
-                },
+
                 {
                     type: 'function' as const,
                     name: 'delegate_to_jules',
@@ -287,12 +195,12 @@ Conclude your investigation with a detailed summary containing the severity, roo
                             const session = await julesService.startSession({
                                 prompt: args.prompt,
                                 autoPr: args.autoPr || false,
-                                repo: { owner: repoOwner, repo: repoName, branch: defaultBranch }
+                                repo: { owner: "jmbish04", repo: "recruiter", branch: "main" }
                             });
                             
                             const db = getDb(this.env.DB);
                             await db.insert(julesJobs).values({
-                                sessionId: session.id, repoFullName: `${repoOwner}/${repoName}`,
+                                sessionId: session.id, repoFullName: `jmbish04/recruiter`,
                                 prompt: args.prompt, status: "pending"
                             });
     

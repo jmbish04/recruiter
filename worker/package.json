@@ -15,10 +15,14 @@
     "deploy:tail": "rm -f wrangler.txt && pnpm run deploy && wrangler tail --format pretty | tee wrangler.txt"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@astrojs/cloudflare": "^12.6.12",
     "@astrojs/react": "^4.4.2",
     "@cloudflare/ai-chat": "^0.1.5",
+    "@google/genai": "^1.43.0",
     "@hono/zod-openapi": "^1.2.2",
+    "@octokit/rest": "^22.0.1",
+    "@openai/agents": "^0.5.2",
     "@platejs/basic-nodes": "^52.0.11",
     "@radix-ui/react-toolbar": "^1.1.11",
     "@scalar/hono-api-reference": "^0.9.46",
@@ -36,6 +40,7 @@
     "drizzle-orm": "^0.45.1",
     "hono": "^4.12.3",
     "lucide-react": "^0.575.0",
+    "openai": "^6.25.0",
     "platejs": "^52.3.2",
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
@@ -46,11 +51,20 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260228.1",
     "@types/node": "^25.3.2",
     "drizzle-kit": "^0.31.9",
     "tsx": "^4.21.0",
     "typescript": "catalog:",
     "wrangler": "^4.69.0"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@openai/agents"
+      ]
+    },
+    "overrides": {
+      "hono": "^4.12.0"
+    }
   }
 }

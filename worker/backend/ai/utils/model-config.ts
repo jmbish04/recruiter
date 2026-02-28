@@ -26,7 +26,8 @@ export type AgentName =
   | 'Supervisor'
   | 'OrchestratorAgent'
   | 'DataProcessor'
-  | 'Sandbox';
+  | 'Sandbox'
+  | 'JulesFeedbackAgent';
 
 export interface ModelConfig {
   model: string;
@@ -107,6 +108,12 @@ export const AGENT_MODEL_CONFIG: Record<AgentName, ModelConfig> = {
     provider: 'anthropic',
     costTier: 'medium', // Not 'high' - Sonnet is still reasonable
     description: 'Deep analysis - complex reasoning required'
+  },
+  'JulesFeedbackAgent': {
+    model: 'claude-sonnet-4.5',
+    provider: 'anthropic',
+    costTier: 'medium',
+    description: 'Advanced routing and deep technical reasoning for PR creation'
   },
 };
 

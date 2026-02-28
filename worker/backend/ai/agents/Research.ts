@@ -9,7 +9,6 @@ import { BaseAgent, BaseAgentState } from "@/ai/agent-sdk";
 import { Logger } from "@logging";
 import type { Agent } from "@openai/agents";
 import { getAgentModelName } from "@/ai/utils/model-config";
-import { getOctokit } from "@services/octokit/core";
 import { z } from "zod";
 
 interface ResearchState extends BaseAgentState {
@@ -44,106 +43,19 @@ export class ResearchAgent extends BaseAgent<Env, ResearchState> {
   async onStart(): Promise<void> {
     this.logger.info("ResearchAgent initialized");
 
-    const searchGithubCodeTool = {
-      type: 'function' as const,
-      name: "search_github_code",
-      description: "Search for code in GitHub repositories using GitHub's specialized search syntax. Using 'invok' signature for @openai/agents compatibility.",
-      parameters: {
-        type: "object" as const,
-        properties: {
-          query: { 
-            type: "string" as const, 
-            description: "The search query. Supports qualifiers like `org:cloudflare`, `repo:owner/name`, `filename:config.json`, `extension:ts`. Regex is NOT supported directly, but you can search for exact strings." 
-          },
-          regex_filter: { 
-            type: "string" as const, 
-            description: "Optional JS-compatible regex string to filter the search results locally (e.g., `^src/.*.ts$`). Application happens after fetching results." 
-          },
-          max_results: { 
-            type: "number" as const, 
-            description: "Maximum number of results to return (default: 10)." 
-          }
-        },
-        required: ["query"],
-        additionalProperties: false
-      },
-      strict: true,
-      isEnabled: async () => true, 
-      needsApproval: async () => false,
-      invoke: async (context: any, input: string) => {
-        try {
-          const args = JSON.parse(input);
-          const octokit = await getOctokit(this.env);
-          
-          // 1. Pre-process query
-          const finalQuery = args.query;
-          
-          // 2. Perform Search
-          try {
-            const { data } = await octokit.search.code({
-              q: finalQuery,
-              per_page: Math.min(args.max_results || 10, 100), // Cap at 100
-            });
-
-            let items = data.items.map((item: any) => ({
-              name: item.name,
-              path: item.path,
-              repository: item.repository.full_name,
-              html_url: item.html_url,
-              score: item.score
-            }));
-
-            // 3. Post-Process matching (Regex Filter)
-            if (args.regex_filter) {
-              try {
-                const regex = new RegExp(args.regex_filter);
-                items = items.filter((item: any) => regex.test(item.path));
-              } catch (e) {
-                return JSON.stringify({ error: `Invalid regex provided: ${args.regex_filter}` });
-              }
-            }
-
-            return JSON.stringify({
-              total_count_raw: data.total_count,
-              returned_count: items.length,
-              items
-            });
-          } catch (err: any) {
-            return JSON.stringify({ error: `GitHub Search failed: ${err.message}` });
-          }
-        } catch (parseError: any) {
-          return JSON.stringify({ error: `Failed to parse tool input: ${parseError.message}` });
-        }
-      }
-    };
-    
     const { Agent: OpenAIAgent } = await import("@openai/agents");
     // Initialize agent WITH tools
     this.agent = new OpenAIAgent({
       name: "ResearchAgent",
       model: getAgentModelName('ResearchAgent'), // Cost-optimized: gpt-4o
-      instructions: `You are a senior research analyst specializing in GitHub repository analysis.
+      instructions: `You are a senior research analyst.
       
 Your capabilities:
-- Search and analyze GitHub repositories
-- Clone repositories for deep code analysis
-- Generate insights about code architecture and patterns
-- Query vectorized code embeddings for semantic search
-
-When a user asks you to research a repository:
-1. Generate a research plan
-2. Use tools to gather information
-3. Trigger deep analysis workflows when needed
-4. Synthesize findings into actionable insights
-
-Querying Code (Base Population Search):
-- Use 'search_github_code' to find files.
-- GitHub Code Search does NOT support regex. You must use qualifiers.
-- Example: To find all "wrangler.jsonc" files in org "cloudflare", use query: "org:cloudflare filename:wrangler.jsonc".
-- Use 'regex_filter' parameter to refine the returned list of paths locally.
+- Generate insights about architectures
+- Research general programming topics
 
 Always be thorough but concise. Focus on practical insights that developers can use.`,
-      tools: [searchGithubCodeTool],
+      tools: [],
     });
   }
 

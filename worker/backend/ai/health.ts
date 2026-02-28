@@ -149,10 +149,10 @@ export async function checkHealth(env: Env): Promise<HealthStepResult> {
     // --- 5b. Verify AI Gateway Token is Active ---
     if (env.CLOUDFLARE_ACCOUNT_ID && env.AI_GATEWAY_TOKEN) {
         await runCheck("aiGatewayToken", async () => {
-            const accountId = (typeof env.CLOUDFLARE_ACCOUNT_ID === 'object' && env.CLOUDFLARE_ACCOUNT_ID !== null && 'get' in env.CLOUDFLARE_ACCOUNT_ID ? await env.CLOUDFLARE_ACCOUNT_ID.get() : env.CLOUDFLARE_ACCOUNT_ID) as string;
+            const accountId = env.CLOUDFLARE_ACCOUNT_ID ? await env.CLOUDFLARE_ACCOUNT_ID.get() : "";
             if (!accountId) throw new Error("CLOUDFLARE_ACCOUNT_ID is required for token verification");
 
-            const token = (typeof env.AI_GATEWAY_TOKEN === 'object' && env.AI_GATEWAY_TOKEN !== null && 'get' in env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : env.AI_GATEWAY_TOKEN) as string;
+            const token = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
             const gatewayName = env.AI_GATEWAY_NAME || "core-github-api";
             
             if (!token) throw new Error(`AI_GATEWAY_TOKEN is empty. Gateway Config: { name: "${gatewayName}", tokenName: "AI_GATEWAY_TOKEN" }`);
@@ -208,7 +208,7 @@ export async function checkHealth(env: Env): Promise<HealthStepResult> {
                 ]
             };
 
-            const gatewayToken = typeof env.AI_GATEWAY_TOKEN === 'object' && env.AI_GATEWAY_TOKEN !== null && 'get' in env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : env.AI_GATEWAY_TOKEN as string;
+            const gatewayToken = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
             const gatewayName = env.AI_GATEWAY_NAME || "core-github-api";
 
             if (!gatewayToken) throw new Error(`AI_GATEWAY_TOKEN is empty. Gateway Config: { name: "${gatewayName}" }`);
@@ -267,7 +267,7 @@ export async function checkHealth(env: Env): Promise<HealthStepResult> {
                 messages: [{ role: "user", content: "Reply with: Pong" }]
             };
 
-            const gatewayToken = typeof env.AI_GATEWAY_TOKEN === 'object' && env.AI_GATEWAY_TOKEN !== null && 'get' in env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : env.AI_GATEWAY_TOKEN as string;
+            const gatewayToken = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
             const gatewayName = env.AI_GATEWAY_NAME || "core-github-api";
 
             if (!gatewayToken) throw new Error(`AI_GATEWAY_TOKEN is empty. Gateway Config: { name: "${gatewayName}" }`);

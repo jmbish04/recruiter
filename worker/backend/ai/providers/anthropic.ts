@@ -5,8 +5,7 @@ import { AIOptions, TextWithToolsResponse, StructuredWithToolsResponse } from ".
 
 export async function createAnthropicClient(env: Env) {
   const apiKey = await getAnthropicApiKey(env);
-  // @ts-ignore
-  const aigToken = typeof env.AI_GATEWAY_TOKEN === 'object' && env.AI_GATEWAY_TOKEN?.get ? await env.AI_GATEWAY_TOKEN.get() : env.AI_GATEWAY_TOKEN as string;
+  const aigToken = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
 
   if (!apiKey) {
     throw new Error("Missing ANTHROPIC_API_KEY in environment variables");

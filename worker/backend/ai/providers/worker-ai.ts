@@ -7,7 +7,6 @@ import OpenAI from "openai";
 import { resolveDefaultAiModel } from "./config";
 import { cleanJsonOutput, sanitizeAndFormatResponse } from "@/ai/utils/sanitizer";
 import { AIOptions, TextWithToolsResponse, StructuredWithToolsResponse } from "./index";
-import { getWorkerApiKey, getCloudflareApiToken, getCloudflareAccountId, getSecret } from "@/utils/secrets";
 
 const REASONING_MODEL = "@cf/openai/gpt-oss-120b";
 const STRUCTURING_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
@@ -16,20 +15,12 @@ const STRUCTURING_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
  * Helper to initialize the OpenAI client routed through Cloudflare AI Gateway
  */
 async function getAIClient(env: Env) {
-  const accountId = await getCloudflareAccountId(env);
-  const gatewayId = env.AI_GATEWAY_NAME || "core-github-api";
+  const accountId = env.CLOUDFLARE_ACCOUNT_ID ? await env.CLOUDFLARE_ACCOUNT_ID.get() : "none-found";
+  const gatewayId = env.AI_GATEWAY_NAME || "job-hunt";
   
-  let gatewayToken = "";
-  if (env.AI_GATEWAY_TOKEN) {
-    gatewayToken = typeof env.AI_GATEWAY_TOKEN === 'string' 
-        ? env.AI_GATEWAY_TOKEN 
-        : await (env.AI_GATEWAY_TOKEN as any).get();
-  }
-  if (!gatewayToken) {
-    gatewayToken = await getSecret(env, "AI_GATEWAY_TOKEN") || "";
-  }
+  let gatewayToken = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
 
-  const apiKey = await getCloudflareApiToken(env);
+  const apiKey = env.CLOUDFLARE_API_TOKEN ? await env.CLOUDFLARE_API_TOKEN.get() : "dummy-key";
   
   return new OpenAI({
     apiKey: apiKey || "dummy-key",

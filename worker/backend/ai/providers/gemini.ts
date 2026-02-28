@@ -5,8 +5,7 @@ import { cleanJsonOutput } from "@/ai/utils/sanitizer";
 import { AIOptions, TextWithToolsResponse, StructuredWithToolsResponse } from "./index";
 
 export async function createGeminiClient(env: Env, model: string) {
-  // @ts-ignore
-  const aigToken = typeof env.AI_GATEWAY_TOKEN === 'object' && env.AI_GATEWAY_TOKEN?.get ? await env.AI_GATEWAY_TOKEN.get() : env.AI_GATEWAY_TOKEN as string;
+  const aigToken = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
 
   if (!aigToken || !env.CLOUDFLARE_ACCOUNT_ID) {
     throw new Error("Missing AI_GATEWAY_TOKEN and CLOUDFLARE_ACCOUNT_ID required for BYOK configuration");
@@ -152,7 +151,7 @@ export async function generateTextWithTools(
     contents: [{ role: "user", parts: [{ text: prompt }] }]
   });
 
-  const toolCalls = response.functionCalls?.map((call, index) => ({
+  const toolCalls = response.functionCalls?.map((call: any, index: number) => ({
     id: `call_${index}`, 
     function: {
       name: call.name || "unknown",
@@ -192,7 +191,7 @@ export async function generateStructuredWithTools<T = any>(
     contents: [{ role: "user", parts: [{ text: prompt }] }]
   });
 
-  const toolCalls = response.functionCalls?.map((call, index) => ({
+  const toolCalls = response.functionCalls?.map((call: any, index: number) => ({
     id: `call_${index}`,
     function: {
       name: call.name || "unknown",

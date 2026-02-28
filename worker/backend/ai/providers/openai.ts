@@ -6,8 +6,7 @@ import { cleanJsonOutput } from "@/ai/utils/sanitizer";
 import { AIOptions, TextWithToolsResponse, StructuredWithToolsResponse } from "./index";
 
 export async function createOpenAIClient(env: Env) {
-  // @ts-ignore
-  const aigToken = typeof env.AI_GATEWAY_TOKEN === 'object' && env.AI_GATEWAY_TOKEN?.get ? await env.AI_GATEWAY_TOKEN.get() : env.AI_GATEWAY_TOKEN as string;
+  const aigToken = env.AI_GATEWAY_TOKEN ? await env.AI_GATEWAY_TOKEN.get() : "";
 
   // "Key in Request + Authenticated Gateway" pattern:
   // - apiKey: REAL OpenAI key (SDK sends as Authorization: Bearer)

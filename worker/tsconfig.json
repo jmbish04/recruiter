@@ -19,7 +19,7 @@
       "@ai/*": ["backend/ai/*"]
     },
     "types": [
-      "@cloudflare/workers-types",
+      // "@cloudflare/workers-types",
       "./worker-configuration.d.ts"
     ],
     "strict": true,

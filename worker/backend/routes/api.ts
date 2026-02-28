@@ -3,6 +3,7 @@ import { apiReference } from "@scalar/hono-api-reference";
 import { companiesRouter } from "../api/companies";
 import { materialsRouter } from "../api/materials";
 import { createRoute, z } from "@hono/zod-openapi";
+import feedbackRouter from "../api/feedback";
 
 /**
  * Primary API Router (OpenAPI v3.1.0 compliant)
@@ -72,3 +73,8 @@ apiRouter.route("/companies", companiesRouter);
  * /api/materials Router
  */
 apiRouter.route("/materials", materialsRouter);
+
+/**
+ * /api/feedback Router
+ */
+apiRouter.route("/feedback", feedbackRouter);

@@ -504,3 +504,4 @@ export async function createGatewayAgent<Output extends AgentOutputType = any>(
 
 
 export { OpenAIAgent, OpenAIAgent as Agent, callable, withTrace, z };
+export { resolveDefaultAiModel, resolveDefaultAiProvider, type SupportedProvider } from "./agent-ai";

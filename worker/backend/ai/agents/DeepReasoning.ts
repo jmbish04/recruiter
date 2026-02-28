@@ -9,7 +9,7 @@ import { callable } from "agents";
 import { resolveDefaultAiModel, resolveDefaultAiProvider, type SupportedProvider } from "@/ai/providers/config";
 import { BaseAgentState } from "@/ai/agent-sdk";
 import { BaseAgent } from "@/ai/agents/BaseAgent";
-import { Logger } from "@logging";
+import { Logger } from "@/lib/logger";
 
 /**
  * @interface DeepReasoningInput
@@ -105,9 +105,9 @@ export class DeepReasoningAgent extends BaseAgent<BaseAgentState> {
       const provider = payload.provider || defaultProvider;
       
       // DEBUG: Verify environment keys are accessible for AI Gateway/Provider routing
-      const hasAiGateway = !!(await this.env.AI_GATEWAY_TOKEN?.get?.() ?? this.env.AI_GATEWAY_TOKEN);
-      const hasCfToken = !!(await this.env.CLOUDFLARE_API_TOKEN?.get?.() ?? this.env.CLOUDFLARE_API_TOKEN);
-      const hasOpenAi = !!(await this.env.OPENAI_API_KEY?.get?.() ?? this.env.OPENAI_API_KEY); 
+      const hasAiGateway = !!(await this.env.AI_GATEWAY_TOKEN.get());
+      const hasCloudflare = !!(await this.env.CLOUDFLARE_API_TOKEN.get());
+      const hasOpenAi = !!(await this.env.OPENAI_API_KEY.get());
       
 
       
