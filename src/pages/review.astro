@@ -1,0 +1,144 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import '@/styles/globals.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Human-in-the-Loop Job Review</title>
+	</head>
+	<body class="dark">
+		<Layout client:load>
+      <div class="flex justify-between items-center mb-6">
+			  <h1 class="text-3xl font-bold">Job Review Interface</h1>
+        <div class="space-x-2">
+          <Button variant="outline">Skip</Button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-[80vh]">
+        {/* Left Side: Job Details */}
+        <Card class="flex flex-col h-full overflow-hidden">
+          <CardHeader class="border-b">
+            <div class="flex justify-between items-start">
+              <div>
+                <CardTitle class="text-xl">Senior Frontend Engineer</CardTitle>
+                <CardDescription>Acme Corp • San Francisco, CA (Hybrid) • $160k - $210k</CardDescription>
+              </div>
+              <Badge variant="secondary">2 days ago</Badge>
+            </div>
+          </CardHeader>
+          <CardContent class="flex-1 overflow-y-auto p-6 space-y-4">
+            <h3 class="font-semibold text-lg">About the Role</h3>
+            <p class="text-muted-foreground text-sm leading-relaxed">
+              We are looking for an experienced Senior Frontend Engineer to join our core product team. You will be responsible for architecting and building scalable web applications using React, TypeScript, and modern state management tools...
+            </p>
+
+            <h3 class="font-semibold text-lg mt-6">Requirements</h3>
+            <ul class="list-disc pl-5 text-muted-foreground text-sm space-y-2">
+              <li>5+ years of experience with modern JavaScript frameworks (React preferred)</li>
+              <li>Strong proficiency in TypeScript and responsive design principles</li>
+              <li>Experience with state management libraries (Redux, Zustand)</li>
+              <li>Understanding of web performance optimization techniques</li>
+            </ul>
+
+            <h3 class="font-semibold text-lg mt-6">Benefits</h3>
+            <ul class="list-disc pl-5 text-muted-foreground text-sm space-y-2">
+              <li>Comprehensive health, dental, and vision coverage</li>
+              <li>401(k) matching up to 5%</li>
+              <li>Unlimited PTO (Minimum 3 weeks required)</li>
+              <li>Hybrid work environment (3 days in office)</li>
+            </ul>
+          </CardContent>
+          <div class="p-4 border-t bg-muted/20">
+            <Button variant="link" class="px-0">View Original Posting ↗</Button>
+          </div>
+        </Card>
+
+        {/* Right Side: AI Analysis & Human Override */}
+        <Card class="flex flex-col h-full overflow-hidden bg-muted/10 border-primary/20">
+          <CardHeader class="border-b bg-card">
+            <CardTitle class="flex items-center justify-between">
+              <span>AI Analysis & Scoring</span>
+              <Badge class="bg-primary/20 text-primary hover:bg-primary/30 text-lg py-1 px-3">88 / 100</Badge>
+            </CardTitle>
+            <CardDescription>Review the AI's assessment and provide your human override ratings.</CardDescription>
+          </CardHeader>
+
+          <CardContent class="flex-1 overflow-y-auto p-6 space-y-8">
+            <div class="space-y-3">
+              <h3 class="font-medium flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-green-500"></span>
+                AI Rationale
+              </h3>
+              <div class="bg-card border rounded-md p-4 text-sm text-muted-foreground leading-relaxed">
+                Strong match for requested skills (React, TypeScript). Salary exceeds minimum threshold ($160k > $130k). However, location score is reduced due to 'Hybrid (3 days in office)' conflicting with 'Remote' preference. Benefits are standard but include requested 401k match.
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <h3 class="font-medium flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-primary"></span>
+                Human Rating Override
+              </h3>
+
+              <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <Label>Overall Fit</Label>
+                    <span class="text-muted-foreground font-mono">AI: 88</span>
+                  </div>
+                  <Input type="number" min="0" max="100" defaultValue="88" class="font-mono" />
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <Label>Location Fit</Label>
+                    <span class="text-orange-500 font-mono">AI: 65</span>
+                  </div>
+                  <Input type="number" min="0" max="100" defaultValue="50" class="font-mono border-orange-500/50" />
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <Label>Compensation</Label>
+                    <span class="text-green-500 font-mono">AI: 95</span>
+                  </div>
+                  <Input type="number" min="0" max="100" defaultValue="95" class="font-mono" />
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <Label>Benefits</Label>
+                    <span class="text-muted-foreground font-mono">AI: 80</span>
+                  </div>
+                  <Input type="number" min="0" max="100" defaultValue="80" class="font-mono" />
+                </div>
+              </div>
+
+              <div class="space-y-2 pt-2">
+                <Label>Review Notes (Optional)</Label>
+                <Textarea placeholder="Add context for your rating changes. This trains the AI for future evaluations." class="min-h-[100px]" />
+              </div>
+            </div>
+          </CardContent>
+
+          <div class="p-4 border-t bg-card flex justify-end gap-3">
+            <Button variant="destructive">Reject Job</Button>
+            <Button class="bg-primary text-primary-foreground hover:bg-primary/90">Approve & Save Ratings</Button>
+          </div>
+        </Card>
+      </div>
+		</Layout>
+	</body>
+</html>

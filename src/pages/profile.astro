@@ -1,0 +1,87 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import '@/styles/globals.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>User Job Profile Details</title>
+	</head>
+	<body class="dark">
+		<Layout client:load>
+      <div class="flex justify-between items-center mb-6">
+			  <h1 class="text-3xl font-bold">Job Profile</h1>
+        <Button>Update Profile</Button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Core Information</CardTitle>
+            <CardDescription>Basic details used across applications.</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label>Full Name</Label>
+                <Input defaultValue="Jane Doe" />
+              </div>
+              <div class="space-y-2">
+                <Label>Current Title</Label>
+                <Input defaultValue="Senior Software Engineer" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <Label>Contact Email</Label>
+              <Input type="email" defaultValue="jane@example.com" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Skills & Technologies</CardTitle>
+            <CardDescription>Primary skills for AI matching.</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="flex flex-wrap gap-2 p-4 border rounded-md bg-muted/20 min-h-[100px]">
+              <Badge variant="secondary" class="pr-1 group cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors">
+                TypeScript <span class="ml-1 opacity-50 group-hover:opacity-100">×</span>
+              </Badge>
+              <Badge variant="secondary" class="pr-1 group cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors">
+                React <span class="ml-1 opacity-50 group-hover:opacity-100">×</span>
+              </Badge>
+              <Badge variant="secondary" class="pr-1 group cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors">
+                Node.js <span class="ml-1 opacity-50 group-hover:opacity-100">×</span>
+              </Badge>
+              <Input class="border-none bg-transparent h-6 w-32 focus-visible:ring-0 p-0 shadow-none text-sm placeholder:text-muted-foreground/50" placeholder="Add skill..." />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Experience History</CardTitle>
+            <CardDescription>Detailed history used to generate resumes.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              class="min-h-[250px] font-mono text-sm leading-relaxed"
+              defaultValue="- Senior Engineer at Acme Corp (2020-Present)\n  - Led migration from REST to GraphQL, reducing API payload by 40%\n  - Mentored 3 junior engineers to promotion\n\n- Software Engineer at Globex (2018-2020)\n  - Built and maintained core payment processing microservices"
+            />
+          </CardContent>
+        </Card>
+      </div>
+		</Layout>
+	</body>
+</html>

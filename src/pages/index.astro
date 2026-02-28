@@ -1,0 +1,22 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import '@/styles/globals.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Job Scraper Dashboard</title>
+	</head>
+	<body>
+		<Layout client:load>
+			<h1 class="text-3xl font-bold mb-6">Mission Control Overview</h1>
+			<p class="text-muted-foreground max-w-2xl">
+        Welcome to the Job Scraper Platform Dashboard. Use the navigation on the left to review tracked companies, configure agentic scoring, fine-tune your profile, review job scores, and manage your AI-generated resumes.
+      </p>
+		</Layout>
+	</body>
+</html>
