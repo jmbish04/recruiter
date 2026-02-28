@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "deploy": "astro build && wrangler deploy",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate:sqlite",
     "migrate:db": "wrangler d1 migrations apply job-scraper-db --remote",
     "migrate:local": "wrangler d1 migrations apply job-scraper-db --local"
   },
