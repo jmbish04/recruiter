@@ -1,0 +1,69 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import '@/styles/globals.css';
+
+// Mock data
+const companies = [
+  { id: 1, name: "Acme Corp", website: "acme.com", careerPageUrl: "acme.com/careers", isActive: true, lastScannedAt: "2024-02-28 09:00 AM" },
+  { id: 2, name: "Globex", website: "globex.com", careerPageUrl: "globex.com/jobs", isActive: false, lastScannedAt: "2024-02-27 10:30 AM" },
+];
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Companies Management - Job Scraper</title>
+	</head>
+	<body class="dark">
+		<Layout client:load>
+      <div class="flex justify-between items-center mb-6">
+			  <h1 class="text-3xl font-bold">Companies Management</h1>
+        <Button>Add Company</Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Tracked Organizations</CardTitle>
+          <CardDescription>Review and manage companies configured for the job scraper agent.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Company Name</TableHead>
+                <TableHead>Careers Page</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Scanned</TableHead>
+                <TableHead class="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {companies.map(company => (
+                <TableRow>
+                  <TableCell class="font-medium">{company.name}</TableCell>
+                  <TableCell class="text-muted-foreground">{company.careerPageUrl}</TableCell>
+                  <TableCell>
+                    {company.isActive ? <Badge>Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
+                  </TableCell>
+                  <TableCell>{company.lastScannedAt}</TableCell>
+                  <TableCell class="text-right space-x-2">
+                    <Button variant="outline" size="sm">Edit</Button>
+                    <Button variant="destructive" size="sm">Remove</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+		</Layout>
+	</body>
+</html>

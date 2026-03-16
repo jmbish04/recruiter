@@ -1,0 +1,53 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import { PlateEditor } from '../frontend/components/plate-ui/PlateEditor';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import '@/styles/globals.css';
+
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Resume & Cover Letter Builder</title>
+	</head>
+	<body class="dark">
+		<Layout client:load>
+      <div class="flex justify-between items-center mb-6">
+			  <h1 class="text-3xl font-bold">Resume & Cover Letter Builder</h1>
+        <div class="space-x-2">
+          <Button variant="secondary">Regenerate with AI</Button>
+          <Button>Export PDF</Button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-12 gap-6 h-[80vh]">
+        <div class="col-span-3">
+          <Card class="h-full">
+            <CardHeader>
+              <CardTitle>Working Copies</CardTitle>
+              <CardDescription>Select a document for this job.</CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-2">
+              <Button variant="outline" class="w-full justify-start font-medium bg-muted/50">Tech Lead Resume - Acme Corp</Button>
+              <Button variant="ghost" class="w-full justify-start text-muted-foreground">Software Engineer Cover Letter</Button>
+              <Button variant="ghost" class="w-full justify-start text-muted-foreground">Staff Engineer Resume - Draft 2</Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div class="col-span-9 h-full">
+          <Card class="h-full overflow-hidden flex flex-col">
+            <div class="flex-1 p-0 m-0">
+              <PlateEditor client:load />
+            </div>
+          </Card>
+        </div>
+      </div>
+		</Layout>
+	</body>
+</html>

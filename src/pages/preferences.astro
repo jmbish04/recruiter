@@ -1,0 +1,82 @@
+---
+import Layout from '../frontend/components/ui/Layout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Slider } from "@/components/ui/slider"
+import { Button } from "@/components/ui/button"
+import '@/styles/globals.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Scoring Preferences Configuration</title>
+	</head>
+	<body class="dark">
+		<Layout client:load>
+      <div class="flex justify-between items-center mb-6">
+			  <h1 class="text-3xl font-bold">Scoring Preferences</h1>
+        <Button>Save Settings</Button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Scoring Weights</CardTitle>
+            <CardDescription>Adjust how the AI evaluates and ranks job listings.</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-6">
+            <div class="space-y-3">
+              <div class="flex justify-between"><Label>Minimum Relevancy Score</Label><span class="text-sm">75%</span></div>
+              <Slider defaultValue={[75]} max={100} step={1} />
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between"><Label>Location Importance</Label><span class="text-sm">High</span></div>
+              <Slider defaultValue={[80]} max={100} step={1} />
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between"><Label>Salary Priority</Label><span class="text-sm">Medium</span></div>
+              <Slider defaultValue={[50]} max={100} step={1} />
+            </div>
+            <div class="space-y-3">
+              <div class="flex justify-between"><Label>Benefits Match</Label><span class="text-sm">Medium</span></div>
+              <Slider defaultValue={[50]} max={100} step={1} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Keyword Triggers</CardTitle>
+            <CardDescription>Configure words that positively or negatively impact a score.</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="space-y-2">
+              <Label>Priority Keywords (comma separated)</Label>
+              <Textarea placeholder="remote, typescript, react, healthcare, 4 day work week" class="min-h-[100px]" />
+            </div>
+            <div class="space-y-2">
+              <Label>Excluded Keywords (comma separated)</Label>
+              <Textarea placeholder="hybrid, 5 days office, blockchain, web3" class="min-h-[100px]" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label>Minimum Salary (USD)</Label>
+                <Input type="number" placeholder="130000" />
+              </div>
+              <div class="space-y-2">
+                <Label>Preferred Locations</Label>
+                <Input placeholder="Remote, EST, NYC" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+		</Layout>
+	</body>
+</html>

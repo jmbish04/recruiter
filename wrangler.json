@@ -1,6 +1,5 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "job-scraper-api",
+  "name": "recruiter",
   "main": "src/index.ts",
   "compatibility_date": "2024-04-01",
   "assets": {
@@ -18,7 +17,15 @@
   "ai": {
     "binding": "AI"
   },
-  "observability": {
-    "enabled": true
-  }
+	"upload_source_maps": true,
+	"observability": {
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": false
+		}
+	}
 }
