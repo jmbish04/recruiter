@@ -149,7 +149,7 @@ const UpdateJobRoute = createRoute({
 
 app.openapi(UpdateJobRoute, async (c) => {
   const db = drizzle(c.env.DB);
-  const id = parseInt(c.req.param('id'));
+  const { id } = c.req.valid('param');
   const body = c.req.valid('json');
   const result = await db.update(jobs).set(body).where(eq(jobs.id, id)).returning().get();
   if (!result) return c.json({ error: 'Not found' }, 404);
