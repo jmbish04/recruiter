@@ -2,13 +2,13 @@ import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 
 export const companies = sqliteTable('companies', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  name: text('name'),
+  name: text('name').notNull(),
   careerUrl: text('career_url'),
   jobLinkPattern: text('job_link_pattern'),
 });
 
 export const preferences = sqliteTable('preferences', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   candidateProfile: text('candidate_profile'),
   jobPreferences: text('job_preferences'),
   minScore: integer('min_score').default(80),
@@ -16,9 +16,9 @@ export const preferences = sqliteTable('preferences', {
 
 export const jobs = sqliteTable('jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  companyId: integer('company_id').references(() => companies.id),
-  jobUrl: text('job_url').unique(),
-  title: text('title'),
+  companyId: integer('company_id').references(() => companies.id, { onDelete: 'cascade' }),
+  jobUrl: text('job_url').notNull().unique(),
+  title: text('title').notNull(),
   location: text('location'),
   salary: text('salary'),
   compensation: text('compensation'),

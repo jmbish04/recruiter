@@ -93,7 +93,7 @@ const GetCompanyRoute = createRoute({
 
 app.openapi(GetCompanyRoute, async (c) => {
   const db = drizzle(c.env.DB);
-  const id = parseInt(c.req.param('id'));
+  const { id } = c.req.valid('param');
   const result = await db.select().from(companies).where(eq(companies.id, id)).get();
   if (!result) return c.json({ error: 'Not found' }, 404);
   return c.json(result);
@@ -132,7 +132,7 @@ const UpdateCompanyRoute = createRoute({
 
 app.openapi(UpdateCompanyRoute, async (c) => {
   const db = drizzle(c.env.DB);
-  const id = parseInt(c.req.param('id'));
+  const { id } = c.req.valid('param');
   const body = c.req.valid('json');
   const result = await db.update(companies).set(body).where(eq(companies.id, id)).returning().get();
     if (!result) return c.json({ error: 'Not found' }, 404);

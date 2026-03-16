@@ -9,9 +9,13 @@ export type Bindings = {
   DB: D1Database;
 };
 
+import { basicAuth } from 'hono/basic-auth';
+
 const app = new OpenAPIHono<{ Bindings: Bindings }>();
 
 app.use('*', cors());
+
+app.use('/api/db/*', basicAuth({ username: 'admin', password: 'password' })); // Add a proper auth mechanism in production
 
 app.route('/api/db/companies', companies);
 app.route('/api/db/preferences', preferences);

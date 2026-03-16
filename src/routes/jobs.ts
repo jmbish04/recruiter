@@ -111,7 +111,7 @@ const GetJobRoute = createRoute({
 
 app.openapi(GetJobRoute, async (c) => {
   const db = drizzle(c.env.DB);
-  const id = parseInt(c.req.param('id'));
+  const { id } = c.req.valid('param');
   const result = await db.select().from(jobs).where(eq(jobs.id, id)).get();
   if (!result) return c.json({ error: 'Not found' }, 404);
   return c.json(result);

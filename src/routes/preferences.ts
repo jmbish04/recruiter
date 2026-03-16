@@ -65,16 +65,16 @@ app.openapi(CreateOrUpdatePreferencesRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const body = c.req.valid('json');
 
-  // Check if exists
-  const existing = await db.select().from(preferences).limit(1).get();
+  const result = await db.insert(preferences)
+    .values({ id: 1, ...body })
+    .onConflictDoUpdate({
+      target: preferences.id,
+      set: body,
+    })
+    .returning()
+    .get();
 
-  if (existing) {
-     const result = await db.update(preferences).set(body).where(eq(preferences.id, existing.id)).returning().get();
-     return c.json(result);
-  } else {
-     const result = await db.insert(preferences).values(body).returning().get();
-     return c.json(result);
-  }
+  return c.json(result);
 });
 
 export default app;
