@@ -65,6 +65,9 @@ app.openapi(CreateOrUpdatePreferencesRoute, async (c) => {
   const db = drizzle(c.env.DB);
   const body = c.req.valid('json');
 
+  // NOTE: This requires changing the schema for `preferences.id` to be a
+  // non-autoincrementing primary key, e.g., `id: integer('id').primaryKey()`.
+  // You can then use a fixed ID like 1 to enforce a single row.
   const result = await db.insert(preferences)
     .values({ id: 1, ...body })
     .onConflictDoUpdate({
