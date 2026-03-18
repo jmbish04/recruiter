@@ -5,13 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-<<<<<<< HEAD
       "when": 1772268139898,
       "tag": "0000_past_joseph",
-=======
-      "when": 1772039168873,
-      "tag": "0000_peaceful_madame_hydra",
->>>>>>> 7b9c497 (feat: implement Drizzle schema and Hono API)
       "breakpoints": true
     }
   ]

@@ -8,13 +8,8 @@ import preferences from './routes/preferences';
 import jobs from './routes/jobs';
 import { api } from './backend/api/index';
 
-export type Bindings = {
-  DB: D1Database;
-  AI: any;
-  ASSETS: Fetcher;
-};
 
-const app = new OpenAPIHono<{ Bindings: Bindings }>();
+const app = new OpenAPIHono<{ Bindings: Env }>();
 
 app.use('*', cors());
 
@@ -35,6 +30,10 @@ app.doc('/doc/json', {
     title: 'Job Scraper API',
   },
 });
+
+const app = new Hono<{ Bindings: Bindings }>();
+
+app.route('/api', api);
 
 app.get('*', async (c) => {
   return c.env.ASSETS.fetch(c.req.raw);
