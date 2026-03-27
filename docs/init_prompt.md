@@ -10,7 +10,7 @@ also agents that will create the resume and cover letters in d1 tables anbd the 
 
 the same db schema for company career sites, preferences, etc ... but also include agents for human in the loop to review jobs and the rating that was provided by ai .... the user can provide their own rating for the job overall and or provide ratings on different aspects like location, benefits, salary, etc.
 
-Please use src/frontend for frontend and src/backend for backend ... all code will roll up into a single worker, its just that i would like to keep the code seperate. 
+Please use src/frontend for frontend and src/backend for backend ... all code will roll up into a single worker, its just that i would like to keep the code seperate.
 
 > > This will be data that will be incorporated into the agentic scoring system of future job postings
 
