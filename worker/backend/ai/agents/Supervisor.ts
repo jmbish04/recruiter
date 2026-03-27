@@ -89,13 +89,6 @@ export class Supervisor extends BaseAgent<Env> {
         }
 
 
-        if (request.method === "POST" && url.pathname === "/debug/start") {
-            return this.startLiveSurgery(request);
-        }
-
-        if (url.pathname.startsWith("/debug/")) {
-            return this.handleDebugProxy(request, url);
-        }
         if (request.method === "POST" && url.pathname === "/exec") {
             return this.relayToContainer(request, "/exec");
         }
@@ -129,16 +122,6 @@ export class Supervisor extends BaseAgent<Env> {
         return Response.json({ error: "Container support temporarily disabled" }, { status: 503 });
 
     }
-    private async startLiveSurgery(_request: Request): Promise<Response> {
-        return Response.json({ error: "Container support temporarily disabled" }, { status: 503 });
-
-    }
-
-    private async handleDebugProxy(_request: Request, _url: URL): Promise<Response> {
-        return Response.json({ error: "Container support temporarily disabled" }, { status: 503 });
-
-    }
-
     async handleChat(msg: string): Promise<Response> {
         this.broadcast(`[User] ${msg}\n`);
 

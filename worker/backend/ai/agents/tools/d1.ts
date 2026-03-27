@@ -37,10 +37,18 @@ const TABLE_COLUMNS = {
   jules_jobs: ['session_id', 'repo_full_name', 'prompt', 'status'],
 } as const;
 
-const TABLE_NAMES = Object.keys(TABLE_COLUMNS) as [keyof typeof TABLE_COLUMNS, ...(keyof typeof TABLE_COLUMNS)[]];
+const TABLE_NAMES = [
+  'companies',
+  'candidate_profiles',
+  'jobs',
+  'job_evaluations',
+  'application_materials',
+  'jules_jobs',
+] as const;
 const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 const CONDITION_OPERATORS = ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'like', 'in', 'isNull', 'isNotNull'] as const;
 const WRITE_ACTIONS = ['insert', 'update', 'delete'] as const;
+const DEFAULT_READ_LIMIT = 50;
 
 const ScalarValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 const ScalarArraySchema = z.array(ScalarValueSchema).min(1);
@@ -70,18 +78,19 @@ function assertTable(table: string): TableName {
 }
 
 function assertColumn(table: TableName, column: string): string {
-  if (!TABLE_COLUMNS[table].includes(column as never)) {
+  const allowedColumns = TABLE_COLUMNS[table] as readonly string[];
+  if (!allowedColumns.includes(column)) {
     throw new Error(`Column "${column}" is not allowed for table "${table}".`);
   }
   return column;
 }
 
 function quoteIdentifier(identifier: string): string {
-  return `"${identifier}"`;
+  return `"${identifier.replace(/"/g, '""')}"`;
 }
 
 function requireScalarValue(condition: Condition): ScalarValue {
-  if (Array.isArray(condition.value) || condition.value === undefined) {
+  if (condition.value === undefined || Array.isArray(condition.value)) {
     throw new Error(`Operator "${condition.operator}" for column "${condition.column}" requires a single value.`);
   }
   return condition.value;
@@ -105,13 +114,15 @@ function buildCondition(table: TableName, condition: Condition): { sql: string; 
     case 'like':
       return { sql: `${column} LIKE ?`, params: [requireScalarValue(condition)] };
     case 'in': {
-      const values = Array.isArray(condition.value) ? condition.value : [];
-      if (values.length === 0) {
+      if (!Array.isArray(condition.value)) {
+        throw new Error(`Operator "in" for column "${condition.column}" requires an array value.`);
+      }
+      if (condition.value.length === 0) {
         throw new Error(`Operator "in" for column "${condition.column}" requires at least one value.`);
       }
       return {
-        sql: `${column} IN (${values.map(() => '?').join(', ')})`,
-        params: values,
+        sql: `${column} IN (${condition.value.map(() => '?').join(', ')})`,
+        params: condition.value,
       };
     }
     case 'isNull':
@@ -140,7 +151,7 @@ const readParameters = z.object({
   columns: z.array(z.string()).min(1).optional().describe('Optional list of columns to select. Defaults to all columns.'),
   where: z.array(ConditionSchema).optional().describe('Optional AND-filter conditions.'),
   orderBy: OrderBySchema.optional().describe('Optional sort order.'),
-  limit: z.number().int().min(1).max(100).optional().describe('Optional limit between 1 and 100 rows.'),
+  limit: z.number().int().min(1).max(100).optional().describe(`Optional limit between 1 and 100 rows. Defaults to ${DEFAULT_READ_LIMIT}.`),
 });
 
 const writeParameters = z.object({
@@ -218,11 +229,12 @@ export const D1ReadTool = (env: Env): Tool => ({
       const safeTable = assertTable(table);
       const selectedColumns = getSelectedColumns(safeTable, columns);
       const whereClause = buildWhereClause(safeTable, where);
+      const effectiveLimit = limit ?? DEFAULT_READ_LIMIT;
       const orderClause = orderBy
         ? ` ORDER BY ${quoteIdentifier(assertColumn(safeTable, orderBy.column))} ${orderBy.direction.toUpperCase()}`
         : '';
-      const limitClause = limit ? ' LIMIT ?' : '';
-      const params = limit ? [...whereClause.params, limit] : whereClause.params;
+      const limitClause = ' LIMIT ?';
+      const params = [...whereClause.params, effectiveLimit];
       const query = `SELECT ${selectedColumns} FROM ${quoteIdentifier(safeTable)}${whereClause.sql}${orderClause}${limitClause}`;
       const { results } = await env.DB.prepare(query).bind(...params).all();
       return results;
@@ -243,12 +255,18 @@ export const D1WriteTool = (env: Env): Tool => ({
   execute: async ({ action, table, data = {}, where = [] }: z.infer<typeof writeParameters>) => {
     try {
       const safeTable = assertTable(table);
-      const statement =
-        action === 'insert'
-          ? buildInsertStatement(safeTable, data)
-          : action === 'update'
-            ? buildUpdateStatement(safeTable, data, where)
-            : buildDeleteStatement(safeTable, where);
+      let statement;
+      switch (action) {
+        case 'insert':
+          statement = buildInsertStatement(safeTable, data);
+          break;
+        case 'update':
+          statement = buildUpdateStatement(safeTable, data, where);
+          break;
+        case 'delete':
+          statement = buildDeleteStatement(safeTable, where);
+          break;
+      }
 
       const result = await env.DB.prepare(statement.sql).bind(...statement.params).run();
       return {
