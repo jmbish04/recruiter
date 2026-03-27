@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+---
+
+<Layout title="Head Hunter | Agentic Career Scouting">
+  <main class="container mx-auto py-10 px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+      <div>
+        <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">Head Hunter 🎯</h1>
+        <p class="text-muted-foreground text-lg">Agentic Application & Scouting Matrix</p>
+      </div>
+      <div class="flex gap-3">
+        <Button variant="outline" asChild><a href="/companies">Manage Targets</a></Button>
+        <Button asChild><a href="/profile">Candidate Profile</a></Button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Jobs</CardTitle>
+          <CardDescription>Scraped positions awaiting review</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p class="text-3xl font-bold">0</p>
+          <p class="text-xs text-muted-foreground mt-2 border-t border-border pt-2 text-[#b0b0b0]">ScraperAgent Queue</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Evaluated</CardTitle>
+          <CardDescription>Processed by AI Analyst</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p class="text-3xl font-bold">0</p>
+          <p class="text-xs text-muted-foreground mt-2 border-t border-border pt-2 text-[#b0b0b0]">EvaluatorAgent Outcomes</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Materials Generated</CardTitle>
+          <CardDescription>Resumes & Cover Letters</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p class="text-3xl font-bold">0</p>
+          <p class="text-xs text-muted-foreground mt-2 border-t border-border pt-2 text-[#b0b0b0]">WriterAgent & Plate UI</p>
+        </CardContent>
+      </Card>
+    </div>
+  </main>
+</Layout>

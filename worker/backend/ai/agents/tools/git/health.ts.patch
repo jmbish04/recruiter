@@ -1,0 +1,11 @@
+--- backend/src/ai/agents/tools/git/health.ts
++++ backend/src/ai/agents/tools/git/health.ts
+@@ -51,7 +51,7 @@
+ 
+                 // 2a. Ping test — verifies container runtime is awake (needs longer timeout for provisioning)
+                 const pingStart = Date.now();
+-                await withTimeout(sandbox.exec("echo ping"), 60000, "Sandbox Ping");
++                await withTimeout(sandbox.exec("echo ping"), 60000, "Sandbox Ping").catch(e => console.error("PING_FAILED:", e));
+                 subChecks.sandboxPing = { status: "OK", latency: Date.now() - pingStart };
+ 
+                 // 2b. File System Check — tests write → read → delete cycle

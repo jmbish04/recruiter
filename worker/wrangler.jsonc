@@ -1,0 +1,118 @@
+{
+	"main": "dist/_worker.js/index.js",
+	"name": "recruiter",
+	"compatibility_date": "2026-02-28",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	},
+	"upload_source_maps": true,
+	"observability": {
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": false
+		}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "recruiter",
+			"database_id": "436c0301-99b0-4c6d-ae96-7d88c548c077",
+			"migrations_dir": "./migrations",
+			"remote": true
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"browser": {
+		"binding": "BROWSER"
+	},
+	"durable_objects": {
+		"bindings": [
+			{ "name": "SCRAPER_AGENT", "class_name": "ScraperAgent" },
+			{ "name": "EVALUATOR_AGENT", "class_name": "EvaluatorAgent" },
+			{ "name": "WRITER_AGENT", "class_name": "WriterAgent" },
+			{ "name": "AGENT_JULES_FEEDBACK", "class_name": "JulesFeedbackAgent" }
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["ScraperAgent", "EvaluatorAgent", "WriterAgent", "JulesFeedbackAgent"]
+		}
+	],
+   // wrangler vectorize create recruiter-health-logs --preset @cf/baai/bge-large-en-v1.5
+	"vectorize": [
+		{
+			"binding": "VECTORIZE_LOGS",
+			"index_name": "recruiter-health-logs"
+		}
+	],
+	"vars": {
+		"GITHUB_OWNER": "jmbish04",
+		"CLOUDFLARE_WORKER_NAME": "recruiter",
+		"USE_OPENAI_MODELS": true,
+    	"AI_GATEWAY_NAME": "job-hunt"
+	},
+	"secrets_store_secrets": [
+		{
+			"binding": "GITHUB_TOKEN",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "GITHUB_TOKEN"
+		},
+		{
+			"binding": "CLOUDFLARE_API_TOKEN",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "CLOUDFLARE_API_TOKEN"
+		},
+		{
+			"binding": "OPENAI_API_KEY",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "OPENAI_API_KEY"
+		},
+		{
+			"binding": "CLOUDFLARE_ACCOUNT_ID",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "CLOUDFLARE_ACCOUNT_ID"
+		},
+		{
+			"binding": "WORKER_API_KEY",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "WORKER_API_KEY"
+		},
+		{
+			"binding": "AI_GATEWAY_TOKEN",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "CLOUDFLARE_AI_GATEWAY_TOKEN"
+		},
+		{
+			"binding": "CF_BROWSER_RENDER_TOKEN",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "CLOUDFLARE_BROWSER_RENDER_TOKEN"
+		},
+		{
+			"binding": "JULES_API_KEY",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "JULES_API_KEY"
+		},
+		{
+			"binding": "GEMINI_API_KEY",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "GOOGLE_API_KEY"
+		},
+		{
+			"binding": "ANTHROPIC_API_KEY",
+			"store_id": "8c42fa70938644e0a8a109744467375f",
+			"secret_name": "ANTHROPIC_API_KEY"
+		}			
+	]  
+}
