@@ -73,7 +73,7 @@ const GetCompanyRoute = createRoute({
   path: '/:id',
   request: {
     params: z.object({
-      id: z.string().transform((v) => parseInt(v)),
+      id: z.coerce.number().int(),
     }),
   },
   responses: {
