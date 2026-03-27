@@ -104,13 +104,6 @@ export class DeepReasoningAgent extends BaseAgent<BaseAgentState> {
       const schemaObj = payload.schema || {};
       const provider = payload.provider || defaultProvider;
       
-      // DEBUG: Verify environment keys are accessible for AI Gateway/Provider routing
-      const hasAiGateway = !!(await this.env.AI_GATEWAY_TOKEN.get());
-      const hasCloudflare = !!(await this.env.CLOUDFLARE_API_TOKEN.get());
-      const hasOpenAi = !!(await this.env.OPENAI_API_KEY.get());
-      
-
-      
       if (!promptText) {
         return new Response("Missing prompt/input", { status: 400 });
       }
