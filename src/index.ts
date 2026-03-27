@@ -15,7 +15,7 @@ app.use('*', cors());
 
 app.route('/api', api);
 
-app.use('/api/db/*', basicAuth({ username: 'admin', password: 'password' })); // Add a proper auth mechanism in production
+app.use('/api/db/*', basicAuth({ username: c.env.API_USERNAME, password: c.env.API_PASSWORD })); // Add a proper auth mechanism in production
 
 app.route('/api/db/companies', companies);
 app.route('/api/db/preferences', preferences);
