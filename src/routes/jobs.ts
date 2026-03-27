@@ -9,8 +9,8 @@ const app = new OpenAPIHono<{ Bindings: Bindings }>();
 const JobSchema = z.object({
   id: z.number().openapi({ example: 1 }),
   companyId: z.number().nullable().openapi({ example: 1 }),
-  jobUrl: z.string().openapi({ example: 'https://example.com/job/1' }),
-  title: z.string().openapi({ example: 'Software Engineer' }),
+  jobUrl: z.string().nullable().openapi({ example: 'https://example.com/job/1' }),
+  title: z.string().nullable().openapi({ example: 'Software Engineer' }),
   location: z.string().nullable().openapi({ example: 'Remote' }),
   salary: z.string().nullable().openapi({ example: '50k' }),
   compensation: z.string().nullable(),
@@ -91,7 +91,7 @@ const GetJobRoute = createRoute({
   path: '/:id',
   request: {
     params: z.object({
-      id: z.coerce.number().int(),
+      id: z.string().transform((v) => parseInt(v)),
     }),
   },
   responses: {
@@ -122,7 +122,7 @@ const UpdateJobRoute = createRoute({
   path: '/:id',
   request: {
     params: z.object({
-      id: z.coerce.number().int(),
+      id: z.string().transform((v) => parseInt(v)),
     }),
     body: {
       content: {

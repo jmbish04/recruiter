@@ -8,14 +8,19 @@ import preferences from './routes/preferences';
 import jobs from './routes/jobs';
 import { api } from './backend/api/index';
 
+export type Bindings = {
+  DB: D1Database;
+  AI: any;
+  ASSETS: Fetcher;
+};
 
-const app = new OpenAPIHono<{ Bindings: Env }>();
+const app = new OpenAPIHono<{ Bindings: Bindings }>();
 
 app.use('*', cors());
 
 app.route('/api', api);
 
-app.use('/api/db/*', basicAuth({ username: c.env.API_USERNAME, password: c.env.API_PASSWORD })); // Add a proper auth mechanism in production
+app.use('/api/db/*', basicAuth({ username: 'admin', password: 'password' })); // Add a proper auth mechanism in production
 
 app.route('/api/db/companies', companies);
 app.route('/api/db/preferences', preferences);
@@ -30,10 +35,6 @@ app.doc('/doc/json', {
     title: 'Job Scraper API',
   },
 });
-
-const app = new Hono<{ Bindings: Bindings }>();
-
-app.route('/api', api);
 
 app.get('*', async (c) => {
   return c.env.ASSETS.fetch(c.req.raw);
